@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b0c0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym Tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="gym-tracker-manifest.json">
+
+<title>Gym Tracker</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0b0c0e;--panel:#131519;--panel2:#191b20;--text:#f7f7f5;--muted:#8d919a;--line:#292c33;--accent:#d7ff3f}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:1080px;margin:auto;padding:22px 18px 50px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}
+.brand{font-size:10px;font-weight:900;letter-spacing:2.5px;color:var(--accent);margin-bottom:7px}
+h1{font-size:34px;line-height:.95;margin:0;letter-spacing:-1.8px;font-weight:900}.muted{font-size:12px;color:var(--muted);margin-top:8px}
+.daybar{display:flex;gap:4px;background:#15171b;border:1px solid var(--line);padding:4px;border-radius:12px;margin-bottom:20px}
+.day{flex:1;border:0;background:transparent;color:#777c85;border-radius:9px;padding:12px 14px;font-size:11px;font-weight:900;letter-spacing:.8px;cursor:pointer}
+.day.active{background:var(--accent);color:#0b0c0e}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin:12px 0;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.card:first-of-type{background:#15171b;border-color:#2c3038;padding:20px}
+.progress{height:5px;background:#30333a;border-radius:99px;overflow:hidden;margin:15px 0 11px}.bar{height:100%;background:var(--accent);width:0;transition:.3s;border-radius:99px}
+.exercise{border-left:0;overflow:hidden}.exercise:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.exercise:nth-child(2):before{background:#9d7cff}.exercise:nth-child(3):before{background:#54a5ff}.exercise:nth-child(4):before{background:#42d59b}.exercise:nth-child(5):before{background:#ffc857}.exercise:nth-child(6):before{background:#54d9d0}.exercise:nth-child(7):before{background:#ff70b7}
+.exercise.done{opacity:.48}.exercise.done h2{text-decoration:line-through}
+.exercise h2{font-size:18px;line-height:1.15;margin:0 0 7px;letter-spacing:-.45px;font-weight:850}
+.badge{display:inline-block;color:#aeb2ba;background:#202329;border:1px solid #30343c;border-radius:6px;padding:4px 7px;font-size:9px;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
+.instructions{background:#1b1e23;border:1px solid #292d35;border-radius:10px;padding:11px 12px;margin:12px 0;font-size:12px;line-height:1.5;color:#bfc2c8}
+.set{display:grid;grid-template-columns:1fr 105px 105px;gap:9px;align-items:end;border-top:1px solid #25282e;padding:13px 0}.set:first-of-type{border-top:0}
+.set strong{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.4px}.set small{display:block;color:var(--muted);margin-top:4px;font-size:10px}
+label{font-size:8px;color:#777c85;font-weight:900;display:block;margin:0 0 5px;text-transform:uppercase;letter-spacing:.8px}
+input{width:100%;height:40px;padding:8px 10px;border:1px solid #343840;border-radius:8px;font:inherit;font-size:13px;background:#0f1114;color:#fff;outline:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(215,255,63,.12)}
+.btn{border:0;border-radius:8px;padding:11px 14px;font-weight:900;font-size:10px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer}
+.primary{background:var(--accent);color:#0b0c0e}.secondary{background:#24272d;color:#e7e8ea}.danger{background:#351b20;color:#ff8f9b}.full{width:100%;margin-top:8px}
+.history{background:#101215;border:1px solid #272a30;border-radius:9px;padding:12px;font-size:11px;line-height:1.55;color:#b6bac2}
+.footer{position:sticky;bottom:12px;z-index:5;background:rgba(15,17,20,.94);backdrop-filter:blur(15px);border:1px solid #30343b;color:#fff;border-radius:12px;padding:9px 10px 9px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 12px 35px rgba(0,0,0,.45);font-size:10px;font-weight:800;letter-spacing:.3px}
+@media(min-width:800px){#workout{display:grid;grid-template-columns:1fr 1fr;gap:12px}#workout .card{margin:0}}
+@media(max-width:560px){.app{padding:18px 12px 32px}h1{font-size:29px}.top{align-items:flex-start}.day{padding:11px 5px;font-size:9px;letter-spacing:.4px}.set{grid-template-columns:1fr 80px 80px}.card{padding:15px;border-radius:13px}.footer{bottom:8px}}
+
+/* iPhone-first UX */
+@media(max-width:560px){
+  html,body{width:100%;min-height:100%;overflow-x:hidden}
+  body{-webkit-tap-highlight-color:transparent}
+  .app{
+    width:100%;padding-left:12px;padding-right:12px;
+    padding-top:max(16px,env(safe-area-inset-top));
+    padding-bottom:calc(112px + env(safe-area-inset-bottom))
+  }
+  .top{gap:10px;margin-bottom:16px}
+  h1{font-size:28px}
+  .muted{font-size:11px}
+  button,.btn{min-height:44px;touch-action:manipulation}
+  .daybar{
+    position:sticky;top:max(0px,env(safe-area-inset-top));z-index:20;
+    margin-left:-1px;margin-right:-1px;margin-bottom:14px;
+    box-shadow:0 7px 20px rgba(0,0,0,.3)
+  }
+  .day{min-height:44px;padding:10px 4px;font-size:9px}
+  .card{padding:15px;margin:10px 0;border-radius:14px}
+  .card:first-of-type{padding:16px}
+  .exercise h2{font-size:17px}
+  .instructions{font-size:11px;padding:11px}
+  .set{grid-template-columns:minmax(0,1fr) 78px 78px;gap:6px;padding:12px 0}
+  .set strong{font-size:11px}
+  .set small{font-size:9px}
+  input{
+    min-height:44px;height:44px;font-size:16px;
+    border-radius:9px;-webkit-appearance:none
+  }
+  label{font-size:8px}
+  .full{min-height:46px}
+  .footer{
+    left:12px;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));
+    min-height:60px;padding:8px 9px 8px 13px;border-radius:13px;
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+  }
+  .footer .primary{min-height:44px;padding:10px 14px}
+}
+@media(max-width:370px){
+  .set{grid-template-columns:minmax(0,1fr) 70px 70px}
+  .footer{font-size:9px}
+  .footer .primary{padding-left:11px;padding-right:11px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div><div class="brand">TRAIN / TRACK / PROGRESS</div><h1>GYM TRACKER</h1><div class="muted" id="dateLabel"></div></div>
+  <button class="btn secondary" onclick="newSession()">Nuovo</button>
+</header>
+
+<div class="daybar">
+  <button class="day active" id="dayA" onclick="selectDay('A')">GIORNO 1</button>
+  <button class="day" id="dayB" onclick="selectDay('B')">GIORNO 2</button>
+  <button class="day" id="dayC" onclick="selectDay('C')">GIORNO 3</button>
+</div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;gap:8px"><b id="dayTitle">Allenamento A</b><b id="count">0/7</b></div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div class="muted">Inserisci peso e ripetizioni effettive. Le indicazioni della scheda sono già impostate.</div>
+</div>
+
+<div id="workout"></div>
+
+<div class="card" id="iphoneTip" style="display:none;border-color:#343840;background:#15171b">
+  <div style="font-size:9px;font-weight:900;letter-spacing:1.2px;color:#d7ff3f;margin-bottom:5px">IPHONE</div>
+  <b style="font-size:13px">Aggiungila alla schermata Home</b>
+  <div class="muted" style="line-height:1.5">In Safari: <b style="color:#fff">Condividi → Aggiungi alla schermata Home</b>. Si aprirà a tutto schermo, come un'app.</div>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px">📊 Ultimi dati</h3>
+  <div id="lastData" class="history">Seleziona un esercizio per vedere il dato precedente.</div>
+</div>
+
+<div class="footer"><span id="footerText">0 esercizi completati</span><button class="btn primary" onclick="finish()">Salva allenamento</button></div>
+</div>
+
+<script>
+const routines={
+A:[
+{name:"Panca inclinata con bilanciere",sets:[["6","Buffer 2"],["6","Buffer 1"],["6","TOP SET"]],info:"Piramidale crescente: aumenta il carico. Prima serie buffer 2, seconda buffer 1, ultima serie top set."},
+{name:"Spinte con manubri su panca piana",sets:[["6",""],["6",""],["6",""]]},
+{name:"Rematore con bilanciere presa supina",sets:[["8","CEDIMENTO"],["8","CEDIMENTO"]],info:"Svolgere a cedimento entrambe le serie."},
+{name:"Push down con barra",sets:[["10",""],["10",""]]},
+{name:"Lento avanti al multipower",sets:[["7","Carico base"],["5","↑ AUMENTA CARICO"],["5 + 5","CEDIMENTO + DROP"]],info:"Aumenta il carico nelle ultime due serie. Ultima serie: 5 ripetizioni a cedimento, abbassa il carico e fai altre 5 a cedimento."},
+{name:"Trazioni alla sbarra",sets:[["MAX","MAX RIPETIZIONI"],["MAX","MAX RIPETIZIONI"],["MAX","MAX RIPETIZIONI"]],info:"Massime ripetizioni possibili in ogni serie."},
+{name:"Curl manubri con rotazione alternati",sets:[["8",""],["8",""],["8",""]]}
+],
+B:[
+{name:"Alzate laterali con manubri",sets:[["12","CEDIMENTO"],["12","CEDIMENTO"],["12","CEDIMENTO"]],info:"Tutte le serie a cedimento."},
+{name:"Peck back al macchinario",sets:[["12","1s ISOMETRIA"],["12","1s ISOMETRIA"],["12","1s ISOMETRIA"]],info:"Mantenere 1 secondo di isometria ad ogni ripetizione."},
+{name:"Squat bulgaro con manubri",sets:[["12","CEDIMENTO"],["12","CEDIMENTO"],["12","CEDIMENTO"]],info:"Tutte le serie a cedimento."},
+{name:"Leg extension",sets:[["8","ISOMETRIA IN ALTO"],["8","DROP + CEDIMENTO"]],info:"Isometria in alto ad ogni ripetizione. Seconda serie: drop di peso e arrivare a cedimento."},
+{name:"Leg curl sdraiato",sets:[["8","ISOMETRIA IN ALTO"],["8","DROP + CEDIMENTO"]],info:"Isometria in alto ad ogni ripetizione. Seconda serie: drop di peso e arrivare a cedimento."},
+{name:"Crunch appesantito",sets:[["15",""],["15",""],["15",""]]},
+{name:"Plank appesantito",sets:[["00:40","40 secondi"],["00:40","40 secondi"],["00:40","40 secondi"]],info:"Mantenere la posizione per 40 secondi per serie."}
+],
+C:[
+{name:"Spinte con manubri su panca piana",sets:[["6",""],["6","CEDIMENTO"],["6","CEDIMENTO"]],info:"Le ultime due serie vanno svolte a cedimento."},
+{name:"Lat machine",sets:[["8",""],["8 + 6","CEDIMENTO + DROP"]],info:"Seconda serie: arrivare a cedimento, abbassare il carico e andare nuovamente a cedimento."},
+{name:"French press al cavo alto",sets:[["10",""],["10",""],["10",""]]},
+{name:"Hyperextension",sets:[["20",""],["20",""]]},
+{name:"Croci ai cavi",sets:[["15",""],["15",""]]},
+{name:"Rematore bilanciere",sets:[["8",""],["8",""],["8",""]]},
+{name:"Curl bicipiti con bilanciere EZ",sets:[["10",""],["10",""],["10",""]]}
+]};
+let day="A";
+let session=JSON.parse(localStorage.getItem("gymCurrent")||"null")||{};
+let history=JSON.parse(localStorage.getItem("gymHistory")||"[]");
+
+function save(){localStorage.setItem("gymCurrent",JSON.stringify(session))}
+function selectDay(d){day=d;render()}
+function render(){
+document.querySelectorAll(".day").forEach(x=>x.classList.remove("active"));
+document.getElementById("day"+day).classList.add("active");
+document.getElementById("dayTitle").textContent="Allenamento "+day;
+const list=routines[day];const root=document.getElementById("workout");root.innerHTML="";
+list.forEach((ex,ei)=>{
+ const done=session[day]?.done?.[ei];
+ const card=document.createElement("div");card.className="card exercise"+(done?" done":"");
+ card.innerHTML=`<h2>${ei+1}. ${ex.name}</h2><span class="badge">${ex.sets.length} serie</span>
+ ${ex.info?`<div class="instructions">💡 ${ex.info}</div>`:""}
+ ${ex.sets.map((s,si)=>{let k=`${day}-${ei}-${si}`,v=session[day]?.sets?.[k]||{};return `<div class="set">
+ <div><strong>Serie ${si+1}</strong><small>${s[0]} ripetizioni${s[1]?" · "+s[1]:""}</small></div>
+ <div><label>Peso kg</label><input type="number" min="0" step="0.5" data-key="${k}" data-field="weight" value="${v.weight??""}" oninput="input(this)"></div>
+ <div><label>Reps</label><input type="text" inputmode="numeric" data-key="${k}" data-field="reps" value="${v.reps??(s[0].includes("+")||s[0]==="MAX"||s[0].includes(":")?"":s[0])}" oninput="input(this)"></div>
+ </div>`}).join("")}
+ <button class="btn ${done?"secondary":"primary"} full" onclick="toggleDone(${ei})">${done?"✓ Esercizio completato":"Segna esercizio completato"}</button>`;
+ root.appendChild(card);
+});
+updateProgress();showLast();
+document.getElementById("dateLabel").textContent=new Date().toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+}
+function input(el){session[day]??={sets:{},done:{}};session[day].sets??={};session[day].sets[el.dataset.key]??={};session[day].sets[el.dataset.key][el.dataset.field]=el.value;save();showLast()}
+function toggleDone(i){session[day]??={sets:{},done:{}};session[day].done??={};session[day].done[i]=!session[day].done[i];save();render()}
+function updateProgress(){let n=Object.values(session[day]?.done||{}).filter(Boolean).length,total=routines[day].length;document.getElementById("count").textContent=n+"/"+total;document.getElementById("bar").style.width=n/total*100+"%";document.getElementById("footerText").textContent=n+" esercizi completati"}
+function showLast(){
+let rows=[];
+for(let i=0;i<routines[day].length;i++){let ex=routines[day][i];let old=history.slice().reverse().find(h=>h.day===day&&h.exercise===ex.name);if(old)rows.push(`<b>${ex.name}</b>: ${old.summary}`)}
+document.getElementById("lastData").innerHTML=rows.length?rows.join("<br><br>"):"Nessun dato precedente registrato per questo allenamento.";
+}
+function finish(){
+let completed=Object.values(session[day]?.done||{}).filter(Boolean).length;
+if(!confirm(`Salvare l'Allenamento ${day}? ${completed}/${routines[day].length} esercizi completati.`))return;
+routines[day].forEach((ex,ei)=>{let vals=[];ex.sets.forEach((s,si)=>{let v=session[day]?.sets?.[`${day}-${ei}-${si}`];if(v&&(v.weight||v.reps))vals.push((v.weight?v.weight+" kg":"—")+" × "+(v.reps||s[0]));});if(vals.length)history.push({date:new Date().toISOString(),day,exercise:ex.name,summary:vals.join(" · ")});});
+localStorage.setItem("gymHistory",JSON.stringify(history));alert("Allenamento salvato nello storico.");showLast();
+}
+function newSession(){if(confirm("Vuoi azzerare la sessione corrente?")){session={};save();render()}}
+render();
+if(/iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1)){
+  const tip=document.getElementById("iphoneTip"); if(tip) tip.style.display="block";
+}
+</script>
+</body>
+</html>
